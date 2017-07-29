@@ -1,0 +1,6 @@
+# qnum extension
+comment = 'functions for PostgreSQL'
+default_version = '1.0'
+module_pathname = '$libdir/libqnum'
+relocatable = false
+schema = pg_catalog
