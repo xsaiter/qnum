@@ -69,7 +69,7 @@ static void str_reverse(char *s)
     }
 }
 
-void vlong_read(const char *s, vlong *r)
+static void vlong_read(const char *s, vlong *r)
 {
     int j = 0;
     int i = strlen(s) - 1;
@@ -97,7 +97,7 @@ void vlong_read(const char *s, vlong *r)
     r->n = j;
 }
 
-void vlong_add(const vlong *a, const vlong *b, vlong *r)
+static void vlong_add(const vlong *a, const vlong *b, vlong *r)
 {
     int mem = 0, i, y, rem;
     int nmax = Q_MAX(a->n, b->n);
