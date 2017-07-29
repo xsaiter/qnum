@@ -14,7 +14,14 @@
 PG_MODULE_MAGIC;
 #endif
 
-int is_prime(long a)
+#define Q_MAX(a,b) ((a) > (b) ? (a) : (b))
+
+#define QN 100
+#define QSYS 1000
+#define QK 3
+#define QH QK + 1
+
+static int is_prime(long a)
 {
     if (a < 2) {
         return 0;
@@ -28,16 +35,86 @@ int is_prime(long a)
     return 1;
 }
 
-long gcd(long a, long b) {
-  while (b != 0) {
-    int c = a % b;
-    a = b;
-    b = c;
-  }
-  return (a > 0) ? a : -a;
+static long gcd(long a, long b)
+{
+    while (b != 0) {
+        int c = a % b;
+        a = b;
+        b = c;
+    }
+    return (a > 0) ? a : -a;
 }
 
-int is_relatively_prime(long a, long b) { return gcd(a, b) == 1; }
+static int is_relatively_prime(long a, long b)
+{
+    return gcd(a, b) == 1;
+}
+
+typedef struct {
+    int val[QN];
+    int n;
+} vlong;
+
+static void str_reverse(char *s)
+{
+    int i, j;
+    i = 0;
+    j = strlen(s) - 1;
+    while (i < j) {
+        char c = s[i];
+        s[i] = s[j];
+        s[j] = c;
+        ++i;
+        --j;
+    }
+}
+
+void vlong_read(const char *s, vlong *r)
+{
+    int j = 0;
+    int i = strlen(s) - 1;
+
+    char buf[QH];
+
+    while (i >= 0) {
+        memset(buf, 0, QH * sizeof (char));
+        int j = 0;
+        while (j < QK) {
+            if (i - j < 0) {
+                break;
+            }
+            buf[j] = s[i - j];
+            ++j;
+        }
+        i -= j;
+
+        str_reverse(buf);
+        r->val[j] = atoi(buf);
+
+        ++j;
+    }
+
+    r->n = j;
+}
+
+void vlong_add(const vlong *a, const vlong *b, vlong *r)
+{
+    int mem = 0, i, y, rem;
+    int nmax = Q_MAX(a->n, b->n);
+
+    for (i = 0; i < nmax; ++i) {
+        y = a->val[i] + b->val[i] + mem;
+        rem = y % QSYS;
+        mem = (y - mem) / QSYS;
+        r->val[i] = rem;
+    }
+
+    if (mem > 0) {
+        r->val[i++] = mem;
+    }
+
+    r->n = i;
+}
 
 PG_FUNCTION_INFO_V1(q_num_is_prime);
 PG_FUNCTION_INFO_V1(q_num_gcd);
