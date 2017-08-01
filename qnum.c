@@ -19,7 +19,7 @@ PG_MODULE_MAGIC;
 #define QN 100
 #define QSYS 1000
 #define QK 3
-#define QH QK + 1
+#define QH (QK + 1)
 
 static int is_prime(long a)
 {
