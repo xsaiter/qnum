@@ -16,10 +16,116 @@ PG_MODULE_MAGIC;
 
 #define Q_MAX(a,b) ((a) > (b) ? (a) : (b))
 
-#define QN 100
-#define QSYS 1000
-#define QK 3
-#define QH (QK + 1)
+/*begin vlong*/
+
+#define N 100
+#define SYS 1000
+#define K 3
+#define H (K + 1)
+
+typedef struct {
+    int val[N];
+    int n;
+} vlong;
+
+static void _str_reverse(char *s)
+{
+    int i, j;
+    i = 0;
+    j = strlen(s) - 1;
+    while (i < j) {
+        char c = s[i];
+        s[i] = s[j];
+        s[j] = c;
+        ++i;
+        --j;
+    }
+}
+
+void vlong_read(const char *s, vlong *res)
+{
+    int index = 0;
+    int i = strlen(s) - 1;
+    int j;
+
+    char buf[H];
+
+    while (i >= 0) {
+        memset(buf, 0, H * sizeof (char));
+        j = 0;
+        while (j < K) {
+            if (i - j < 0) {
+                break;
+            }
+            buf[j] = s[i - j];
+            ++j;
+        }
+        i -= j;
+
+        _str_reverse(buf);
+        res->val[index] = atoi(buf);
+
+        ++index;
+    }
+
+    res->n = index;
+}
+
+void vlong_add(const vlong *a, const vlong *b, vlong *r)
+{
+    int mem = 0;
+    int nmax = Q_MAX(a->n, b->n);
+    int i;
+
+    for (i = 0; i < nmax; ++i) {
+        int y = a->val[i] + b->val[i] + mem;
+        int rem = y % SYS;
+        mem = (y - mem) / SYS;
+        r->val[i] = rem;
+    }
+
+    if (mem > 0) {
+        r->val[i++] = mem;
+    }
+
+    r->n = i;
+}
+
+static void _str_prepend(char *s, const char *t)
+{
+    int len = strlen(t);
+    memmove(s + len, s, strlen(s) + 1);
+    strncpy(s, t, len);
+}
+
+void vlong_str(const vlong *v, char *res)
+{
+    char s[H], t[H];
+    int i, j, len;
+
+    for (i = 0; i < v->n; ++i) {
+        memset(s, 0, H * sizeof (char));
+        sprintf(s, "%i", v->val[i]);
+
+        if (i != v->n - 1) {
+            len = strlen(s);
+            if (len < K) {
+                memset(t, 0, H * sizeof (char));
+
+                for (j = 0; j < K - len; ++j) {
+                    t[j] = '0';
+                }
+
+                strcat(t, s);
+                strcpy(s, t);
+            }
+        }
+
+        _str_prepend(res, s);
+    }
+}
+
+/*end vlong*/
 
 static int is_prime(long a)
 {
@@ -48,72 +154,6 @@ static long gcd(long a, long b)
 static int is_relatively_prime(long a, long b)
 {
     return gcd(a, b) == 1;
-}
-
-typedef struct {
-    int val[QN];
-    int n;
-} vlong;
-
-static void str_reverse(char *s)
-{
-    int i, j;
-    i = 0;
-    j = strlen(s) - 1;
-    while (i < j) {
-        char c = s[i];
-        s[i] = s[j];
-        s[j] = c;
-        ++i;
-        --j;
-    }
-}
-
-static void vlong_read(const char *s, vlong *r)
-{
-    int j = 0;
-    int i = strlen(s) - 1;
-
-    char buf[QH];
-
-    while (i >= 0) {
-        memset(buf, 0, QH * sizeof (char));
-        int j = 0;
-        while (j < QK) {
-            if (i - j < 0) {
-                break;
-            }
-            buf[j] = s[i - j];
-            ++j;
-        }
-        i -= j;
-
-        str_reverse(buf);
-        r->val[j] = atoi(buf);
-
-        ++j;
-    }
-
-    r->n = j;
-}
-
-static void vlong_add(const vlong *a, const vlong *b, vlong *r)
-{
-    int mem = 0, i, y, rem;
-    int nmax = Q_MAX(a->n, b->n);
-
-    for (i = 0; i < nmax; ++i) {
-        y = a->val[i] + b->val[i] + mem;
-        rem = y % QSYS;
-        mem = (y - mem) / QSYS;
-        r->val[i] = rem;
-    }
-
-    if (mem > 0) {
-        r->val[i++] = mem;
-    }
-
-    r->n = i;
 }
 
 PG_FUNCTION_INFO_V1(q_num_is_prime);
