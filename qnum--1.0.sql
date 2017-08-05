@@ -12,3 +12,19 @@ language C immutable strict;
 create function q_num_is_relatively_prime (int8, int8) returns boolean
 as '$libdir/libqnum'
 language C immutable strict;
+
+--create domain vlong_text as text check (value ~ '^[0-9]+$');
+--create type vlong as (s vlong_text);
+
+create or replace function vlong(s_ text)
+returns vlong as
+$$
+begin
+  return row(s_)::vlong;
+end  
+$$
+language plpgsql;
+
+create function q_num_vlong_add (text, text) returns text
+as '$libdir/libqnum'
+language C immutable strict;

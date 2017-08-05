@@ -28,6 +28,11 @@ typedef struct {
     int n;
 } vlong;
 
+static inline void vlong_init(vlong *v)
+{
+    memset(v->val, 0, N * sizeof (int));
+}
+
 static void _str_reverse(char *s)
 {
     int i, j;
@@ -40,6 +45,35 @@ static void _str_reverse(char *s)
         ++i;
         --j;
     }
+}
+
+static void _str_prepend(char *s, const char *t)
+{
+    int len = strlen(t);
+    memmove(s + len, s, strlen(s) + 1);
+    strncpy(s, t, len);
+}
+
+static void _itoa(int n, char *s)
+{
+    int i, sign;
+
+    if ((sign = n) < 0) {
+        n = -n;
+    }
+
+    i = 0;
+    do {
+        s[i++] = n % 10 + '0';
+    } while ((n /= 10) > 0);
+
+    if (sign < 0) {
+        s[i++] = '-';
+    }
+
+    s[i] = '\0';
+
+    _str_reverse(s);
 }
 
 void vlong_read(const char *s, vlong *res)
@@ -73,13 +107,13 @@ void vlong_read(const char *s, vlong *res)
 
 void vlong_add(const vlong *a, const vlong *b, vlong *r)
 {
+    int i, y, rem;
     int mem = 0;
     int nmax = Q_MAX(a->n, b->n);
-    int i;
 
     for (i = 0; i < nmax; ++i) {
-        int y = a->val[i] + b->val[i] + mem;
-        int rem = y % SYS;
+        y = a->val[i] + b->val[i] + mem;
+        rem = y % SYS;
         mem = (y - mem) / SYS;
         r->val[i] = rem;
     }
@@ -91,33 +125,19 @@ void vlong_add(const vlong *a, const vlong *b, vlong *r)
     r->n = i;
 }
 
-static void _str_prepend(char *s, const char *t)
-{
-    int len = strlen(t);
-    memmove(s + len, s, strlen(s) + 1);
-    strncpy(s, t, len);
-}
-
 void vlong_str(const vlong *v, char *res)
 {
-    char s[H], t[H];
-    int i, j, len;
+    char s[H];
+    const char zero[2] = "0";
+    int i;
 
     for (i = 0; i < v->n; ++i) {
         memset(s, 0, H * sizeof (char));
-        sprintf(s, "%i", v->val[i]);
+        _itoa(v->val[i], s);
 
         if (i != v->n - 1) {
-            len = strlen(s);
-            if (len < K) {
-                memset(t, 0, H * sizeof (char));
-
-                for (j = 0; j < K - len; ++j) {
-                    t[j] = '0';
-                }
-
-                strcat(t, s);
-                strcpy(s, t);
+            while (strlen(s) < K) {
+                _str_prepend(s, zero);
             }
         }
 
@@ -159,6 +179,32 @@ static int is_relatively_prime(long a, long b)
 PG_FUNCTION_INFO_V1(q_num_is_prime);
 PG_FUNCTION_INFO_V1(q_num_gcd);
 PG_FUNCTION_INFO_V1(q_num_is_relatively_prime);
+PG_FUNCTION_INFO_V1(q_num_vlong_add);
+
+Datum
+q_num_vlong_add(PG_FUNCTION_ARGS)
+{
+    char *s = text_to_cstring(PG_GETARG_TEXT_PP(0));
+    char *t = text_to_cstring(PG_GETARG_TEXT_PP(1));
+
+    vlong a;
+    vlong_init(&a);
+    vlong_read(s, &a);
+
+    vlong b;
+    vlong_init(&b);
+    vlong_read(t, &b);
+
+    vlong c;
+    vlong_init(&c);
+
+    vlong_add(&a, &b, &c);
+
+    char outstr[N*H] = {0};
+    vlong_str(&c, outstr);
+    
+    PG_RETURN_TEXT_P(cstring_to_text(outstr));
+}
 
 Datum
 q_num_is_prime(PG_FUNCTION_ARGS)
