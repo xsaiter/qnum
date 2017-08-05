@@ -16,7 +16,9 @@ PG_MODULE_MAGIC;
 
 #define Q_MAX(a,b) ((a) > (b) ? (a) : (b))
 
-/*begin vlong*/
+/*
+ * begin vlong
+ */
 
 #define N 100
 #define SYS 1000
@@ -145,7 +147,110 @@ void vlong_str(const vlong *v, char *res)
     }
 }
 
-/*end vlong*/
+int vlong_eq(const vlong *a, const vlong *b)
+{
+    if (a->n != b->n) {
+        return 0;
+    }
+
+    int i;
+
+    for (i = 0; i < a->n; ++i) {
+        if (a->val[i] != b->val[i]) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+int vlong_gt(const vlong *a, const vlong *b)
+{
+    if (a->n > b->n) {
+        return 1;
+    }
+    
+    if(a->n < b->n){
+        return 0;
+    }
+
+    int i;
+
+    for (i = a->n - 1; i >= 0; --i) {
+        if (a->val[i] > b->val[i]) {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+PG_FUNCTION_INFO_V1(q_num_vlong_add);
+PG_FUNCTION_INFO_V1(q_num_vlong_eq);
+PG_FUNCTION_INFO_V1(q_num_vlong_gt);
+
+Datum
+q_num_vlong_gt(PG_FUNCTION_ARGS)
+{
+    char *s = text_to_cstring(PG_GETARG_TEXT_PP(0));
+    char *t = text_to_cstring(PG_GETARG_TEXT_PP(1));
+
+    vlong a;
+    vlong_init(&a);
+    vlong_read(s, &a);
+
+    vlong b;
+    vlong_init(&b);
+    vlong_read(t, &b);
+
+    PG_RETURN_BOOL(vlong_gt(&a, &b));
+}
+
+Datum
+q_num_vlong_eq(PG_FUNCTION_ARGS)
+{
+    char *s = text_to_cstring(PG_GETARG_TEXT_PP(0));
+    char *t = text_to_cstring(PG_GETARG_TEXT_PP(1));
+
+    vlong a;
+    vlong_init(&a);
+    vlong_read(s, &a);
+
+    vlong b;
+    vlong_init(&b);
+    vlong_read(t, &b);
+
+    PG_RETURN_BOOL(vlong_eq(&a, &b));
+}
+
+Datum
+q_num_vlong_add(PG_FUNCTION_ARGS)
+{
+    char *s = text_to_cstring(PG_GETARG_TEXT_PP(0));
+    char *t = text_to_cstring(PG_GETARG_TEXT_PP(1));
+
+    vlong a;
+    vlong_init(&a);
+    vlong_read(s, &a);
+
+    vlong b;
+    vlong_init(&b);
+    vlong_read(t, &b);
+
+    vlong c;
+    vlong_init(&c);
+
+    vlong_add(&a, &b, &c);
+
+    char outstr[N * H] = {0};
+    vlong_str(&c, outstr);
+
+    PG_RETURN_TEXT_P(cstring_to_text(outstr));
+}
+
+/*
+ * end vlong
+ */
 
 static int is_prime(long a)
 {
@@ -179,32 +284,6 @@ static int is_relatively_prime(long a, long b)
 PG_FUNCTION_INFO_V1(q_num_is_prime);
 PG_FUNCTION_INFO_V1(q_num_gcd);
 PG_FUNCTION_INFO_V1(q_num_is_relatively_prime);
-PG_FUNCTION_INFO_V1(q_num_vlong_add);
-
-Datum
-q_num_vlong_add(PG_FUNCTION_ARGS)
-{
-    char *s = text_to_cstring(PG_GETARG_TEXT_PP(0));
-    char *t = text_to_cstring(PG_GETARG_TEXT_PP(1));
-
-    vlong a;
-    vlong_init(&a);
-    vlong_read(s, &a);
-
-    vlong b;
-    vlong_init(&b);
-    vlong_read(t, &b);
-
-    vlong c;
-    vlong_init(&c);
-
-    vlong_add(&a, &b, &c);
-
-    char outstr[N*H] = {0};
-    vlong_str(&c, outstr);
-    
-    PG_RETURN_TEXT_P(cstring_to_text(outstr));
-}
 
 Datum
 q_num_is_prime(PG_FUNCTION_ARGS)
