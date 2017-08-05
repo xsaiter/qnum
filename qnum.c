@@ -288,25 +288,22 @@ PG_FUNCTION_INFO_V1(q_num_is_relatively_prime);
 Datum
 q_num_is_prime(PG_FUNCTION_ARGS)
 {
-    long n = PG_GETARG_INT64(0);
-    int res = is_prime(n);
-    PG_RETURN_BOOL(res);
+    long n = PG_GETARG_INT64(0);    
+    PG_RETURN_BOOL(is_prime(n));
 }
 
 Datum
 q_num_gcd(PG_FUNCTION_ARGS)
 {
     long a = PG_GETARG_INT64(0);
-    long b = PG_GETARG_INT64(1);
-    int res = gcd(a, b);
-    PG_RETURN_INT64(res);
+    long b = PG_GETARG_INT64(1);    
+    PG_RETURN_INT64(gcd(a, b));
 }
 
 Datum
 q_num_is_relatively_prime(PG_FUNCTION_ARGS)
 {
     long a = PG_GETARG_INT64(0);
-    long b = PG_GETARG_INT64(1);
-    int res = is_relatively_prime(a, b);
-    PG_RETURN_BOOL(res);
+    long b = PG_GETARG_INT64(1);    
+    PG_RETURN_BOOL(is_relatively_prime(a, b));
 }
