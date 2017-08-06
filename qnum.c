@@ -30,11 +30,6 @@ typedef struct {
     int n;
 } vlong;
 
-static inline void vlong_init(vlong *v)
-{
-    memset(v->val, 0, N * sizeof (int));
-}
-
 static void _str_reverse(char *s)
 {
     int i, j;
@@ -78,13 +73,20 @@ static void _itoa(int n, char *s)
     _str_reverse(s);
 }
 
-void vlong_read(const char *s, vlong *res)
+static inline void vlong_zero(vlong *r)
+{
+    memset(r->val, 0, N * sizeof (int));
+}
+
+void vlong_read(const char *s, vlong *r)
 {
     int index = 0;
     int i = strlen(s) - 1;
     int j;
 
     char buf[H];
+
+    vlong_zero(r);
 
     while (i >= 0) {
         memset(buf, 0, H * sizeof (char));
@@ -99,12 +101,12 @@ void vlong_read(const char *s, vlong *res)
         i -= j;
 
         _str_reverse(buf);
-        res->val[index] = atoi(buf);
+        r->val[index] = atoi(buf);
 
         ++index;
     }
 
-    res->n = index;
+    r->n = index;
 }
 
 void vlong_add(const vlong *a, const vlong *b, vlong *r)
@@ -112,6 +114,8 @@ void vlong_add(const vlong *a, const vlong *b, vlong *r)
     int i, y, rem;
     int mem = 0;
     int nmax = Q_MAX(a->n, b->n);
+
+    vlong_zero(r);
 
     for (i = 0; i < nmax; ++i) {
         y = a->val[i] + b->val[i] + mem;
@@ -169,8 +173,8 @@ int vlong_gt(const vlong *a, const vlong *b)
     if (a->n > b->n) {
         return 1;
     }
-    
-    if(a->n < b->n){
+
+    if (a->n < b->n) {
         return 0;
     }
 
@@ -196,11 +200,9 @@ q_num_vlong_gt(PG_FUNCTION_ARGS)
     char *t = text_to_cstring(PG_GETARG_TEXT_PP(1));
 
     vlong a;
-    vlong_init(&a);
     vlong_read(s, &a);
 
     vlong b;
-    vlong_init(&b);
     vlong_read(t, &b);
 
     PG_RETURN_BOOL(vlong_gt(&a, &b));
@@ -213,11 +215,9 @@ q_num_vlong_eq(PG_FUNCTION_ARGS)
     char *t = text_to_cstring(PG_GETARG_TEXT_PP(1));
 
     vlong a;
-    vlong_init(&a);
     vlong_read(s, &a);
 
     vlong b;
-    vlong_init(&b);
     vlong_read(t, &b);
 
     PG_RETURN_BOOL(vlong_eq(&a, &b));
@@ -230,20 +230,16 @@ q_num_vlong_add(PG_FUNCTION_ARGS)
     char *t = text_to_cstring(PG_GETARG_TEXT_PP(1));
 
     vlong a;
-    vlong_init(&a);
     vlong_read(s, &a);
 
     vlong b;
-    vlong_init(&b);
     vlong_read(t, &b);
 
-    vlong c;
-    vlong_init(&c);
-
-    vlong_add(&a, &b, &c);
+    vlong r;
+    vlong_add(&a, &b, &r);
 
     char outstr[N * H] = {0};
-    vlong_str(&c, outstr);
+    vlong_str(&r, outstr);
 
     PG_RETURN_TEXT_P(cstring_to_text(outstr));
 }
@@ -288,7 +284,7 @@ PG_FUNCTION_INFO_V1(q_num_is_relatively_prime);
 Datum
 q_num_is_prime(PG_FUNCTION_ARGS)
 {
-    long n = PG_GETARG_INT64(0);    
+    long n = PG_GETARG_INT64(0);
     PG_RETURN_BOOL(is_prime(n));
 }
 
@@ -296,7 +292,7 @@ Datum
 q_num_gcd(PG_FUNCTION_ARGS)
 {
     long a = PG_GETARG_INT64(0);
-    long b = PG_GETARG_INT64(1);    
+    long b = PG_GETARG_INT64(1);
     PG_RETURN_INT64(gcd(a, b));
 }
 
@@ -304,6 +300,6 @@ Datum
 q_num_is_relatively_prime(PG_FUNCTION_ARGS)
 {
     long a = PG_GETARG_INT64(0);
-    long b = PG_GETARG_INT64(1);    
+    long b = PG_GETARG_INT64(1);
     PG_RETURN_BOOL(is_relatively_prime(a, b));
 }
