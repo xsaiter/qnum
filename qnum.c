@@ -265,7 +265,7 @@ static int is_prime(long a)
 static long gcd(long a, long b)
 {
     while (b != 0) {
-        int c = a % b;
+        long c = a % b;
         a = b;
         b = c;
     }
