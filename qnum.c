@@ -134,10 +134,9 @@ void vlong_add(const vlong *a, const vlong *b, vlong *r)
 void vlong_str(const vlong *v, char *res)
 {
     char s[H];
-    const char zero[2] = "0";
-    int i;
+    const char zero[2] = "0";    
 
-    for (i = 0; i < v->n; ++i) {
+    for (int i = 0; i < v->n; ++i) {
         memset(s, 0, H * sizeof (char));
         _itoa(v->val[i], s);
 
@@ -155,11 +154,9 @@ int vlong_eq(const vlong *a, const vlong *b)
 {
     if (a->n != b->n) {
         return 0;
-    }
+    }   
 
-    int i;
-
-    for (i = 0; i < a->n; ++i) {
+    for (int i = 0; i < a->n; ++i) {
         if (a->val[i] != b->val[i]) {
             return 0;
         }
@@ -176,11 +173,9 @@ int vlong_gt(const vlong *a, const vlong *b)
 
     if (a->n < b->n) {
         return 0;
-    }
+    }   
 
-    int i;
-
-    for (i = a->n - 1; i >= 0; --i) {
+    for (int i = a->n - 1; i >= 0; --i) {
         if (a->val[i] > b->val[i]) {
             return 1;
         }
